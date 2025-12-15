@@ -6,24 +6,21 @@ require("dotenv").config({
 const express = require("express");
 const connectDB = require("./config/db");
 
-// Routes
+// ROUTES
 const patientRoutes = require("./routes/patientRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
 
 const app = express();
 
-/* =================================================
-   🔥 BRUTE-FORCE CORS (GUARANTEED TO WORK)
-   ================================================= */
+/* =====================================================
+   🔥 BRUTE-FORCE CORS (GUARANTEED)
+   ===================================================== */
 app.use((req, res, next) => {
-  res.header(
-    "Access-Control-Allow-Origin",
-    req.headers.origin || "*"
-  );
+  res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Methods",
-    "GET,POST,PUT,DELETE,OPTIONS"
+    "GET, POST, PUT, DELETE, OPTIONS"
   );
   res.header(
     "Access-Control-Allow-Headers",
@@ -33,38 +30,42 @@ app.use((req, res, next) => {
   if (req.method === "OPTIONS") {
     return res.sendStatus(204);
   }
-
   next();
 });
 
-/* =========================
-   BODY PARSER
-   ========================= */
+/* =====================================================
+   MIDDLEWARE
+   ===================================================== */
 app.use(express.json());
 
-/* =========================
-   CONNECT DATABASE
-   ========================= */
-connectDB();
+/* =====================================================
+   🔎 VERSION CHECK (DEBUG)
+   ===================================================== */
+app.get("/version", (req, res) => {
+  res.json({ ok: true, version: "CORS-TEST-1" });
+});
 
-/* =========================
+/* =====================================================
    API ROUTES
-   ========================= */
+   ===================================================== */
 app.use("/api/patients", patientRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/appointments", appointmentRoutes);
 
-/* =========================
-   HEALTH CHECK
-   ========================= */
+/* =====================================================
+   ROOT
+   ===================================================== */
 app.get("/", (req, res) => {
   res.send("Clinic API is running...");
 });
 
-/* =========================
+/* =====================================================
    START SERVER
-   ========================= */
+   ===================================================== */
 const PORT = process.env.PORT || 3000;
+
+connectDB();
+
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
