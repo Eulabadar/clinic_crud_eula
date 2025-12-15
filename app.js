@@ -1,11 +1,4 @@
-require("dotenv").config({
-  path: require("path").join(__dirname, ".env"),
-  override: true,
-});
-
-console.log("ENV FILE:", require("path").join(__dirname, ".env"));
-console.log("MONGO_URI =", process.env.MONGO_URI);
-console.log("PORT =", process.env.PORT);
+require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
@@ -15,20 +8,32 @@ const patientRoutes = require("./routes/patientRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
 
-// Connect DB
-connectDB();
-
 const app = express();
 
 /* =========================
-   TEMP: ALLOW ALL CORS
-   (for testing only)
+   CORS — MUST BE HERE
 ========================= */
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "https://monstera-6dcf01.netlify.app"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+}));
 
+/* =========================
+   BODY PARSER
+========================= */
 app.use(express.json());
 
-// Routes
+/* =========================
+   DB + ROUTES
+========================= */
+connectDB();
+
 app.use("/api/patients", patientRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/appointments", appointmentRoutes);
