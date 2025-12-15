@@ -1,47 +1,69 @@
-require("dotenv").config();
+require("dotenv").config({
+  path: require("path").join(__dirname, ".env"),
+  override: true,
+});
 
 const express = require("express");
-const cors = require("cors");
 const connectDB = require("./config/db");
 
+// Routes
 const patientRoutes = require("./routes/patientRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
 
 const app = express();
 
-/* =========================
-   CORS — MUST BE HERE
-========================= */
-app.use(cors({
-  origin: [
-    "http://localhost:8080",
-    "http://127.0.0.1:8080",
-    "http://localhost:5500",
-    "http://127.0.0.1:5500",
-    "https://monstera-6dcf01.netlify.app"
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-}));
+/* =================================================
+   🔥 BRUTE-FORCE CORS (GUARANTEED TO WORK)
+   ================================================= */
+app.use((req, res, next) => {
+  res.header(
+    "Access-Control-Allow-Origin",
+    req.headers.origin || "*"
+  );
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET,POST,PUT,DELETE,OPTIONS"
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
 
 /* =========================
    BODY PARSER
-========================= */
+   ========================= */
 app.use(express.json());
 
 /* =========================
-   DB + ROUTES
-========================= */
+   CONNECT DATABASE
+   ========================= */
 connectDB();
 
+/* =========================
+   API ROUTES
+   ========================= */
 app.use("/api/patients", patientRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/appointments", appointmentRoutes);
 
+/* =========================
+   HEALTH CHECK
+   ========================= */
 app.get("/", (req, res) => {
   res.send("Clinic API is running...");
 });
 
+/* =========================
+   START SERVER
+   ========================= */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
