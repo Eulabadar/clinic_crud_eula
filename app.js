@@ -20,25 +20,15 @@ connectDB();
 
 const app = express();
 
-/* =======================
-   ENABLE CORS (IMPORTANT)
-======================= */
-app.use(
-  cors({
-    origin: [
-      "http://localhost:8080",
-      "http://127.0.0.1:8080",
-      "https://monstera-6dcf01.netlify.app"
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-  })
-);
+/* =========================
+   TEMP: ALLOW ALL CORS
+   (for testing only)
+========================= */
+app.use(cors());
 
 app.use(express.json());
 
-/* =========
-   ROUTES
-========= */
+// Routes
 app.use("/api/patients", patientRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/appointments", appointmentRoutes);
