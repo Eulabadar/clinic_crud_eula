@@ -1,58 +1,87 @@
-require("dotenv").config({
-  path: require("path").join(__dirname, ".env"),
-  override: true,
-});
-
+// ===============================
+// IMPORTS
+// ===============================
 const express = require("express");
-const connectDB = require("./config/db");
+const mongoose = require("mongoose");
 
+// Routes
 const patientRoutes = require("./routes/patientRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
 
 const app = express();
 
-// ✅ Allowed origins (LOCAL + NETLIFY)
-const ALLOWED_ORIGINS = [
-  "http://localhost:8080",
-  "http://127.0.0.1:8080",
-  "http://localhost:5500",
-  "http://127.0.0.1:5500",
-  "https://monstera-6dcf01.netlify.app", // change to your actual Netlify URL if different
-];
-
+// ===============================
+// 🔥 FORCE CORS (FINAL FIX)
+// ===============================
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
-  const allowed = [
+  const allowedOrigins = [
     "http://localhost:8080",
     "http://127.0.0.1:8080",
-    "https://monstera-6dcf01.netlify.app",
+    "https://monstera-6dcf01.netlify.app"
   ];
 
-  if (origin && allowed.includes(origin)) {
+  if (allowedOrigins.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   }
 
   res.setHeader("Vary", "Origin");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET,POST,PUT,DELETE,OPTIONS"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
 
-  if (req.method === "OPTIONS") return res.sendStatus(204);
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
   next();
 });
+
+// ===============================
+// BODY PARSER
+// ===============================
 app.use(express.json());
 
-connectDB();
+// ===============================
+// TEST ENDPOINT (IMPORTANT)
+// ===============================
+app.get("/version", (req, res) => {
+  res.json({
+    ok: true,
+    service: "clinic-api",
+    cors: "working"
+  });
+});
 
-// Routes
+// ===============================
+// API ROUTES
+// ===============================
 app.use("/api/patients", patientRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/appointments", appointmentRoutes);
 
-app.get("/", (req, res) => {
-  res.send("Clinic API is running...");
-});
+// ===============================
+// DATABASE CONNECTION
+// ===============================
+const MONGO_URI = process.env.MONGO_URI;
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+mongoose
+  .connect(MONGO_URI)
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => console.error("❌ MongoDB error:", err));
+
+// ===============================
+// SERVER START
+// ===============================
+const PORT = process.env.PORT || 10000;
+
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
