@@ -9,27 +9,28 @@ const appointmentRoutes = require("./routes/appointmentRoutes");
 const app = express();
 
 /* =====================================================
-   ✅ CORS CONFIG (MUST BE BEFORE ROUTES)
-   ===================================================== */
-const allowedOrigins = [
-  // Local development
-  "http://localhost:8080",
-  "http://127.0.0.1:8080",
-  "http://localhost:5500",
-  "http://127.0.0.1:5500",
-
-  // ✅ Netlify frontends (ADD ALL YOU USE)
-  "https://magnificent-trifle-1e1e63.netlify.app",
-  "https://enchanting-licorice-1deb1a.netlify.app",
-];
-
+   ✅ FINAL CORS CONFIG (NO MORE ERRORS)
+   Allows:
+   - localhost
+   - ALL netlify.app domains
+   - Postman / curl
+===================================================== */
 app.use(
   cors({
     origin: (origin, callback) => {
-      // allow requests without origin (Postman, curl)
+      // allow non-browser tools
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
+      // allow localhost
+      if (
+        origin.startsWith("http://localhost") ||
+        origin.startsWith("http://127.0.0.1")
+      ) {
+        return callback(null, true);
+      }
+
+      // allow ALL Netlify apps
+      if (origin.endsWith(".netlify.app")) {
         return callback(null, true);
       }
 
@@ -37,37 +38,40 @@ app.use(
     },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: false,
   })
 );
 
-// ✅ REQUIRED FOR PREFLIGHT REQUESTS
+// ✅ REQUIRED FOR PREFLIGHT (VERY IMPORTANT)
 app.options("*", cors());
 
 /* =====================================================
-   Middlewares
-   ===================================================== */
+   MIDDLEWARES
+===================================================== */
 app.use(express.json());
 
 /* =====================================================
-   Database
-   ===================================================== */
+   DATABASE
+===================================================== */
 connectDB();
 
 /* =====================================================
-   Routes
-   ===================================================== */
+   ROUTES
+===================================================== */
 app.use("/api/patients", patientRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/appointments", appointmentRoutes);
 
-// Health check
+/* =====================================================
+   HEALTH CHECK
+===================================================== */
 app.get("/", (req, res) => {
-  res.send("✅ Clinic API is running...");
+  res.send("✅ Clinic API is running");
 });
 
 /* =====================================================
-   Server
-   ===================================================== */
+   SERVER
+===================================================== */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
